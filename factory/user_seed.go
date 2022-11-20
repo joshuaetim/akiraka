@@ -13,7 +13,7 @@ func SeedUser(dbInstance *gorm.DB) (model.User, error) {
 		Lastname:  gofakeit.LastName(),
 		Email:     gofakeit.Email(),
 		Password:  "$2a$10$VbEAUZR5q.M88TtfaA0ghuYDPS.qFlim/R51pSN4mFAQVdCW4jmtO", // "password"
-		Company:   gofakeit.Company(),
+		Matric:    gofakeit.Word(),
 	}
 
 	ur := infrastructure.NewUserRepository(dbInstance)

@@ -1,7 +1,6 @@
 package infrastructure_test
 
 import (
-	"fmt"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -28,7 +27,7 @@ func TestUserSave(t *testing.T) {
 	user.Lastname = "Etim"
 	user.Email = "jetimworks@gmail.com"
 	user.Password = "password"
-	user.Company = "Jetimworks"
+	user.Matric = "Jetimworks"
 
 	ur := infrastructure.NewUserRepository(db)
 
@@ -45,14 +44,14 @@ func TestUserDuplicateEmail(t *testing.T) {
 	user1 := model.User{
 		Firstname: "Josh",
 		Lastname:  "Etim",
-		Company:   "Jetimworks",
+		Matric:    "Jetimworks",
 		Email:     "jetimworks@gmail.com",
 		Password:  "password",
 	}
 	user2 := model.User{
 		Firstname: "Josh",
 		Lastname:  "Etim",
-		Company:   "Jetimworks",
+		Matric:    "Jetimworks",
 		Email:     "jetimworks@gmail.com",
 		Password:  "password",
 	}
@@ -103,7 +102,7 @@ func TestUserGetAll(t *testing.T) {
 		assert.Nil(t, err)
 		users = append(users, u)
 	}
-	fmt.Println(len(users))
+	// fmt.Println(len(users))
 
 	ur := infrastructure.NewUserRepository(db)
 	allUsers, err := ur.GetAllUser()

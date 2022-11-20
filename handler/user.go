@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joshuaetim/quiz/domain/model"
@@ -40,12 +41,19 @@ func (uh *userHandler) CreateUser(ctx *gin.Context) {
 			"error": err.Error(),
 		})
 	}
+	if strings.Trim(user.Matric, " ") == "" || strings.Trim(user.Password, " ") == "" {
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": "please input all required fields",
+		})
+		return
+	}
 	user.Password = hashPassword(user.Password)
 	user, err := uh.repo.AddUser(user)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{
@@ -61,11 +69,17 @@ func (uh *userHandler) SignInUser(ctx *gin.Context) {
 		})
 	}
 
-	dbUser, err := uh.repo.GetByEmail(user.Email)
+	dbUser, err := uh.repo.GetByMatric(user.Matric)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "details incorrect (email not found)"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "details incorrect (matric not found)"})
 		return
 	}
+
+	// dbUser, err := uh.repo.GetByEmail(user.Email)
+	// if err != nil {
+	// 	ctx.JSON(http.StatusUnauthorized, gin.H{"error": "details incorrect (email not found)"})
+	// 	return
+	// }
 
 	if !comparePassword(dbUser.Password, user.Password) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "details incorrect (password)"})

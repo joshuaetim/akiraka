@@ -10,7 +10,7 @@ import (
 
 func GenerateToken(userid uint) (string, error) {
 	claims := jwt.MapClaims{
-		"exp":    time.Now().Add(time.Hour * 3).Unix(),
+		"exp":    time.Now().Add(time.Hour * 24).Unix(),
 		"iat":    time.Now().Unix(),
 		"userID": userid,
 	}

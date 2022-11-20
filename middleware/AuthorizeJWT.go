@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -46,6 +45,6 @@ func AuthorizeJWT() gin.HandlerFunc {
 			return
 		}
 		ctx.Set("userID", claims["userID"])
-		fmt.Println("during auth: ", claims["userID"])
+		// fmt.Println("during auth: ", claims["userID"])
 	}
 }

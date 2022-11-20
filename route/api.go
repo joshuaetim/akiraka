@@ -15,8 +15,19 @@ func RunAPI(address string) error {
 	staffHandler := handler.NewStaffHandler(db)
 	visitorHandler := handler.NewVisitorHandler(db)
 	dashboardHandler := handler.NewDashboardHandler(db)
+	quizHandler := handler.NewQuizHandler(db)
 
 	r := gin.Default()
+	// r.Use(cors.Default())
+	// r.Use(cors.New(cors.Config{
+	// 	AllowOrigins:     []string{"http://localhost:8080"},
+	// 	AllowMethods:     []string{"GET", "POST", "PUT", "PATCH"},
+	// 	AllowHeaders:     []string{"Origin", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "accept", "rigin", "Cache-Control", "X-Requested-With"},
+	// 	ExposeHeaders:    []string{"Content-Length"},
+	// 	AllowCredentials: true,
+	// 	MaxAge:           12 * time.Hour,
+	// }))
+	r.Use(middleware.CORSMiddleware())
 
 	r.GET("/", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "Welcome to CSC Quiz v1")
@@ -32,6 +43,12 @@ func RunAPI(address string) error {
 	userProtectedRoutes := apiRoutes.Group("/user", middleware.AuthorizeJWT())
 	userProtectedRoutes.GET("/:id", userHandler.GetUser)
 	userProtectedRoutes.PUT("/", userHandler.UpdateUser)
+
+	quizRoutes := apiRoutes.Group("/quiz", middleware.AuthorizeJWT())
+	quizRoutes.GET("", quizHandler.GetQuizBySession)
+	quizRoutes.POST("", quizHandler.CreateQuiz)
+	quizRoutes.POST("/grade", quizHandler.GradeQuiz)
+	quizRoutes.POST("/upload", quizHandler.UploadQuestions)
 
 	staffRoutes := apiRoutes.Group("/staff", middleware.AuthorizeJWT())
 	staffRoutes.GET("/:id", staffHandler.GetUserStaff)

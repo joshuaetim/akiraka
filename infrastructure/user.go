@@ -27,6 +27,11 @@ func (r *userRepo) GetUser(id uint) (model.User, error) {
 	return user, r.db.First(&user, id).Error
 }
 
+func (r *userRepo) GetByMatric(matric string) (model.User, error) {
+	var user model.User
+	return user, r.db.First(&user, "matric = ?", matric).Error
+}
+
 func (r *userRepo) GetByEmail(email string) (model.User, error) {
 	var user model.User
 	return user, r.db.First(&user, "email = ?", email).Error
