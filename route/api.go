@@ -51,11 +51,7 @@ func RunAPI(address string) error {
 	quizRoutes.POST("/upload", quizHandler.UploadQuestions)
 
 	staffRoutes := apiRoutes.Group("/staff", middleware.AuthorizeJWT())
-	staffRoutes.GET("/:id", staffHandler.GetUserStaff)
-	staffRoutes.GET("/", staffHandler.GetAllStaffByUser)
-	staffRoutes.POST("/", staffHandler.CreateUserStaff)
 	staffRoutes.PUT("/:id", staffHandler.UpdateUserStaff)
-	staffRoutes.DELETE("/:id", staffHandler.DeleteUserStaff)
 
 	visitorRoutes := apiRoutes.Group("/visitors", middleware.AuthorizeJWT())
 	visitorRoutes.GET("/", visitorHandler.GetAllUserVisitors)
