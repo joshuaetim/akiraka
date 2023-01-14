@@ -1,5 +1,7 @@
 package controller
 
+// controller handles methods that do not necessarily have repositories (DB)
+
 import (
 	infrastructure "github.com/joshuaetim/quiz/infrastructure"
 	"gorm.io/gorm"

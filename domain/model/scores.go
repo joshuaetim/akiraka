@@ -21,5 +21,5 @@ func (score *Score) PublicScore() *Score {
 }
 
 func (Score) TableName() string {
-	return "quiz"
+	return "score"
 }

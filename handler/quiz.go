@@ -18,6 +18,16 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	ErrorAlreadySubmitted = "ERR_REPEAT"
+)
+
+type Answer struct {
+	UserID    uint   `json:"userID"`
+	SessionID string `json:"sessionID"`
+	Answers   string `json:"answers"`
+}
+
 type QuizHandler interface {
 	CreateQuiz(*gin.Context)
 	GetAllQuiz(*gin.Context)
@@ -27,15 +37,16 @@ type QuizHandler interface {
 }
 
 type quizHandler struct {
-	repo repository.QuizRepository
+	repo      repository.QuizRepository
+	scoreRepo repository.ScoreRepository
+	userRepo  repository.UserRepository
 }
 
-var scoreRepo repository.ScoreRepository
-
 func NewQuizHandler(db *gorm.DB) QuizHandler {
-	scoreRepo = infrastructure.NewScoreRepository(db)
 	return &quizHandler{
-		repo: infrastructure.NewQuizRepository(db),
+		repo:      infrastructure.NewQuizRepository(db),
+		scoreRepo: infrastructure.NewScoreRepository(db),
+		userRepo:  infrastructure.NewUserRepository(db),
 	}
 }
 
@@ -77,6 +88,21 @@ func (sh *quizHandler) GetQuizBySession(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": "sessionID cannot be empty"})
 		return
 	}
+	// check if user has submitted quiz
+	uID := uint(ctx.GetFloat64("userID"))
+	user, err := sh.userRepo.GetUser(uID)
+	if err != nil {
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		return
+	}
+	scoreFromDB, err := sh.scoreRepo.GeneralSearch(map[string]interface{}{
+		"matric":     user.Matric,
+		"session_id": sessionID,
+	})
+	if err == nil || scoreFromDB.Matric != "" {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "you have already submitted", "key": ErrorAlreadySubmitted})
+		return
+	}
 	quiz, err := sh.repo.GetQuizBySession(sessionID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "problem fetching quiz; " + err.Error()})
@@ -90,10 +116,7 @@ func (sh *quizHandler) GetQuizBySession(ctx *gin.Context) {
 }
 
 func (qh *quizHandler) GradeQuiz(ctx *gin.Context) {
-	type answer struct {
-		Answers string `json:"answers"`
-	}
-	var queryAnswer answer
+	var queryAnswer Answer
 	if err := ctx.ShouldBindJSON(&queryAnswer); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "binding error: " + err.Error()})
 		return
@@ -129,7 +152,12 @@ func (qh *quizHandler) GradeQuiz(ctx *gin.Context) {
 	percent := (float64(score) / float64(len(answerMap))) * 100
 	percent = math.Ceil((percent * 100) / 100)
 
-	// add score to db
+	queryAnswer.UserID = uint(ctx.GetFloat64("userID"))
+	err := AddScore(queryAnswer, ctx, qh.scoreRepo, qh.userRepo, percent)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": percent})
 }
@@ -196,4 +224,27 @@ func (qh *quizHandler) UploadQuestions(ctx *gin.Context) {
 			return
 		}
 	}
+}
+
+func AddScore(queryAnswer Answer, ctx *gin.Context, scoreRepo repository.ScoreRepository, userRepo repository.UserRepository, percent float64) error {
+	uID := queryAnswer.UserID
+
+	user, err := userRepo.GetUser(uint(uID))
+	if err != nil {
+		return err
+	}
+	sessionID := queryAnswer.SessionID
+	if strings.Trim(sessionID, " ") == "" {
+		return fmt.Errorf("session ID must be provided")
+	}
+
+	_, err = scoreRepo.AddScore(model.Score{
+		Matric:    user.Matric,
+		Score:     fmt.Sprintf("%.2f", percent),
+		SessionID: sessionID,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -36,3 +36,8 @@ func (r *scoreRepo) GetScoresBySession(id string) ([]model.Score, error) {
 	var scores []model.Score
 	return scores, r.db.Find(&scores, "session_id = ?", id).Error
 }
+
+func (r *scoreRepo) GeneralSearch(query map[string]interface{}) (model.Score, error) {
+	var score model.Score
+	return score, r.db.Where(query).First(&score).Error
+}

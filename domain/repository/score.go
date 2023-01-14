@@ -7,4 +7,5 @@ type ScoreRepository interface {
 	GetAllScores() ([]model.Score, error)
 	GetScoresBySession(string) ([]model.Score, error)
 	GetScore(uint) (model.Score, error)
+	GeneralSearch(map[string]interface{}) (model.Score, error)
 }
