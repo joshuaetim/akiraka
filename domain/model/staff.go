@@ -7,12 +7,13 @@ type Staff struct {
 	Firstname string `json:"first_name"`
 	Lastname  string `json:"last_name"`
 	Email     string `json:"email" gorm:"unique"`
+	Password  string `json:"password"`
 	Phone     string `json:"phone"`
 	Address   string `json:"address"`
 	Status    string `json:"status"`
 	UserID    uint
 	// User      User      `json:"users,omitempty"`
-	Visitors []Visitor `json:"visitors,omitempty"`
+	// Visitors []Visitor `json:"visitors,omitempty"`
 }
 
 func (s *Staff) PublicStaff() *Staff {

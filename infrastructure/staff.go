@@ -27,12 +27,6 @@ func (r *staffRepo) GetStaff(id uint) (model.Staff, error) {
 	return staff, r.db.First(&staff, id).Error
 }
 
-// get staff belonging to a specific user
-func (r *staffRepo) GetUserStaff(id, userid uint) (model.Staff, error) {
-	var staff model.Staff
-	return staff, r.db.First(&staff, "id = ? AND user_id = ?", id, userid).Error
-}
-
 func (r *staffRepo) GetAllStaff() ([]model.Staff, error) {
 	var staff []model.Staff
 	return staff, r.db.Find(&staff).Error
@@ -57,7 +51,7 @@ func (r *staffRepo) DeleteStaff(staff model.Staff) error {
 	return r.db.Delete(&staff).Error
 }
 
-func (r *staffRepo) GetAllStaffByUser(user uint) ([]model.Staff, error) {
-	var staff []model.Staff
-	return staff, r.db.Find(&staff, "user_id = ?", user).Error
+func (r *staffRepo) GeneralSearch(query map[string]interface{}) (model.Staff, error) {
+	staff := model.Staff{}
+	return staff, r.db.Where(query).First(&staff).Error
 }
